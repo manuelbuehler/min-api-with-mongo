@@ -10,7 +10,7 @@ RUN dotnet publish -c Release -o out
 #    mcr.microsoft.com/dotnet/runtime:8.0 für Konsolen-Anwendung (etwas kleiner)
 #    mcr.microsoft.com/dotnet/aspnet:8.0 für Web-Anwendung
 
-FROM mcr.microsoft.com/dotnet/runtime:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 LABEL school="GBS"
 LABEL module="347"
 LABEL author="Manuel Bühler"
