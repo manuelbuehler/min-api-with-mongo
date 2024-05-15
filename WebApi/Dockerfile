@@ -2,7 +2,7 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /build
-COPY WebApi .
+COPY . .
 RUN dotnet restore
 RUN dotnet publish -c Release -o out
 
@@ -16,4 +16,6 @@ LABEL module="347"
 LABEL author="Manuel Bühler"
 WORKDIR /app
 COPY --from=build-env /build/out .
+ENV  ASPNETCORE_URLS=http://*:5001
+EXPOSE 5001
 ENTRYPOINT ["dotnet", "WebApi.dll"]
