@@ -1,1 +1,0 @@
-# min-api-with-mongo

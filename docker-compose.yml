@@ -1,6 +1,22 @@
+version: "3.9"
+
 services:
-  webapi:
-    build: WebApi
-    restart: always
+  mongodb:
+    image: mongo:latest
     ports:
-    - 5001:5001
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-logs:/var/log/mongodb
+  webapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_URLS=http://*:5001
+      - DatabaseSettings__ConnectionString=mongodb://mongodb:27017
+volumes:
+  mongo-data:
+  mongo-logs:
