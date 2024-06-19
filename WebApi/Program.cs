@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using MongoDB.Bson;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,78 +8,89 @@ builder.Services.Configure<DatabaseSettings>(movieDatabaseConfigSection);
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Minimal API Version 1.0");
+app.MapGet("/", () => "Minimal API nach Arbeitsauftrag 3");
 
-
-app.MapGet("/check", (Microsoft.Extensions.Options.IOptions<DatabaseSettings> options)  => {
-
+// docker run --name mongodb -d -p 27017:27017 -v data:/data/db -e MONGO_INITDB_ROOT_USERNAME=gbs -e MONGO_INITDB_ROOT_PASSWORD=geheim mongo
+app.MapGet("/check", (Microsoft.Extensions.Options.IOptions<DatabaseSettings> options) => {
+    
     try
     {
-        var client = new MongoClient(options.Value.ConnectionString);  
+        var mongoDbConnectionString = options.Value.ConnectionString;
+        var mongoClient = new MongoClient(mongoDbConnectionString);
+        var databaseNames = mongoClient.ListDatabaseNames().ToList();
 
-        var dbsList = client.ListDatabases();
-        var dbs= string.Join(",", dbsList);
-
-        return $"Zugriff auf MongoDb ok. Vorhandene DBs: {dbs}\n\n\nVersion: 1.0";
-        
+        return "Zugriff auf MongoDB ok. Vorhandene DBs: " + string.Join(",", databaseNames);
     }
-    catch (System.Exception)
+    catch (System.Exception e)
     {
-        return "Zugriff auf MongoDb nicht ok!";
-    }
+        return "Zugriff auf MongoDB funktioniert nicht: " + e.Message;
+    }         
+
 });
 
 // Insert Movie
-// Wenn das übergebene Objekt eingefügt werden konnte,
-// wird es mit Statuscode 200 zurückgegeben.
+// Wenn das übergebene Objekt eingefügt werden konnte, 
+// wird es mit Statuscode 200 zurückgegeben. 
 // Bei Fehler wird Statuscode 409 Conflict zurückgegeben.
-app.MapPost("/api/movies", () =>
+app.MapPost("/api/movies", (Movie movie) =>
 {
-throw new NotImplementedException();
+    return Results.Ok(movie);
 });
+
 // Get all Movies
 // Gibt alle vorhandenen Movie-Objekte mit Statuscode 200 OK zurück.
 app.MapGet("api/movies", () =>
 {
-throw new NotImplementedException();
+    var movies = new List<Movie>();
+
+    var movie1 = new Movie();
+    movie1.Id = "1";
+    movie1.Title = "Ein Quantum Trost";
+    movies.Add(movie1);
+
+    var movie2 = new Movie();
+    movie2.Id = "2";
+    movie2.Title = "Tomorrow Never Dies";
+    movies.Add(movie2);
+
+    return Results.Ok(movies);
 });
+
 // Get Movie by id
 // Gibt das gewünschte Movie-Objekt mit Statuscode 200 OK zurück.
 // Bei ungültiger id wird Statuscode 404 not found zurückgegeben.
 app.MapGet("api/movies/{id}", (string id) =>
-{
-throw new NotImplementedException();
+{    
+    if(id == "1")
+    {
+        var movie = new Movie()
+        {
+            Id = "1",
+            Title = "Ein Quantum Trost",
+        };
+        return Results.Ok(movie);
+    }
+    else
+    {
+        return Results.NotFound();
+    }
 });
+
 // Update Movie
 // Gibt das aktualisierte Movie-Objekt zurück.
 // Bei ungültiger id wird Statuscode 404 not found zurückgegeben.
-app.MapGet("api/movies/{id}", (string id) =>
-{
-if(id == "1")
-{
-var myMovie = new Movie()
-{
-Id = "1",
-Title = "Asterix und Obelix",
-};
-return Results.Ok(myMovie);
-}
-else
-{
-return Results.NotFound();
-}
-});
 app.MapPut("/api/movies/{id}", (string id, Movie movie) =>
 {
-throw new NotImplementedException();
+    movie.Id = id;
+    return Results.Ok(movie);
 });
+
 // Delete Movie
 // Gibt bei erfolgreicher Löschung Statuscode 200 OK zurück.
 // Bei ungültiger id wird Statuscode 404 not found zurückgegeben.
 app.MapDelete("api/movies/{id}", (string id) =>
 {
-throw new NotImplementedException();
+    return Results.Ok();
 });
-
 
 app.Run();

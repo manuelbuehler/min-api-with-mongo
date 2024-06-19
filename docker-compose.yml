@@ -1,22 +1,21 @@
 version: "3.9"
-
 services:
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-      - mongo-logs:/var/log/mongodb
   webapi:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "5001:5001"
+    build: WebApi
+    restart: always
+    depends_on:
+      - mongodb
     environment:
-      - ASPNETCORE_URLS=http://*:5001
-      - DatabaseSettings__ConnectionString=mongodb://mongodb:27017
+      DatabaseSettings__ConnectionString: "mongodb://gbs:geheim@mongodb:27017"
+    ports:
+      - 5001:5001
+  mongodb:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: gbs
+      MONGO_INITDB_ROOT_PASSWORD: geheim
+    volumes:
+      - mongoData:/data/db
 volumes:
-  mongo-data:
-  mongo-logs:
+  mongoData:
