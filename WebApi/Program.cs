@@ -5,41 +5,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 var movieDatabaseConfigSection = builder.Configuration.GetSection("DatabaseSettings");
 builder.Services.Configure<DatabaseSettings>(movieDatabaseConfigSection);
+builder.Services.AddSingleton<IMovieService, MovieService>();
 
 var app = builder.Build();
 
 app.MapGet("/", () => "Minimal API nach Arbeitsauftrag 3");
 
 // docker run --name mongodb -d -p 27017:27017 -v data:/data/db -e MONGO_INITDB_ROOT_USERNAME=gbs -e MONGO_INITDB_ROOT_PASSWORD=geheim mongo
-app.MapGet("/check", (Microsoft.Extensions.Options.IOptions<DatabaseSettings> options) => {
-    
-    try
-    {
-        var mongoDbConnectionString = options.Value.ConnectionString;
-        var mongoClient = new MongoClient(mongoDbConnectionString);
-        var databaseNames = mongoClient.ListDatabaseNames().ToList();
-
-        return "Zugriff auf MongoDB ok. Vorhandene DBs: " + string.Join(",", databaseNames);
-    }
-    catch (System.Exception e)
-    {
-        return "Zugriff auf MongoDB funktioniert nicht: " + e.Message;
-    }         
-
+app.MapGet("/check", (IMovieService movieService, Microsoft.Extensions.Options.IOptions<DatabaseSettings> options) => {
+    return movieService.Check();
 });
 
 // Insert Movie
 // Wenn das übergebene Objekt eingefügt werden konnte, 
 // wird es mit Statuscode 200 zurückgegeben. 
 // Bei Fehler wird Statuscode 409 Conflict zurückgegeben.
-app.MapPost("/api/movies", (Movie movie) =>
+app.MapPost("/api/movies", (IMovieService, movieService, Movie movie) =>
 {
-    return Results.Ok(movie);
+    return movieService.Get();
 });
 
 // Get all Movies
 // Gibt alle vorhandenen Movie-Objekte mit Statuscode 200 OK zurück.
-app.MapGet("api/movies", () =>
+app.MapGet("api/movies", (IMovieService movieService) =>
 {
     var movies = new List<Movie>();
 
